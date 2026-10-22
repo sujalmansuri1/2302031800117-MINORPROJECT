@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.multi.warehouse</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="website_sale_stock.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='website_warehouse_setting']" position="replace">
+                <div class="row mt16"
+                    id="website_warehouse_setting">
+                    <field name="website_company_id" invisible="1"/>
+                    <label for="warehouse_ids" string="Warehouses" class="col-lg-3 o_light_label" />
+                    <field name="warehouse_ids"
+                        widget="many2many_tags"
+                        options="{'no_create': True}"
+                        domain="[('company_id', '=', website_company_id)]"
+                        placeholder="Select Warehouses"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
