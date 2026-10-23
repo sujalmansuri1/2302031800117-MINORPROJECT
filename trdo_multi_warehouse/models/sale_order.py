@@ -31,6 +31,10 @@ class SaleOrder(models.Model):
             ).free_qty
         return cart_qty, free_qty
 
+    def _get_warehouse_delivery_estimate(self):
+        """ Backward-compatibility method in case old QWeb template is cached in DB """
+        return {}
+
     def _get_insufficient_stock_lines(self):
         self.ensure_one()
         insufficient = self.env['sale.order.line']

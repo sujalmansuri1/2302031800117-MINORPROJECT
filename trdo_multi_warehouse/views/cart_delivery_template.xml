@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="trdo_cart_stock_validation"
+    <template id="trdo_cart_delivery_estimates"
               inherit_id="website_sale.cart_lines"
               name="Multi-Warehouse Cart Stock Validation">
         <!-- Prominent alert banner above cart products if any line exceeds available stock -->
