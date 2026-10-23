@@ -1,13 +1,14 @@
 {
     'name': 'Website Multi Warehouse',
     'version': '18.0.2.0.0',
-    'summary': 'Multi-warehouse eCommerce Fulfillment & Cart Delivery Estimates',
+    'summary': 'Multi-warehouse eCommerce Fulfillment & Stock Availability Validation',
     'description': (
         'Assign multiple warehouses to a website and automatically split orders '
         'across warehouses based on stock availability.\n'
         '\n'
         'Features:\n'
-        '  - Estimated delivery date per warehouse shown on the cart page.\n'
+        '  - Stock availability check across all website warehouses on the cart page.\n'
+        '  - Alerts and stops checkout/payment if requested quantity is not available.\n'
         '  - Multi-warehouse fulfillment and stock allocation.\n'
     ),
     'author': 'TRDO',

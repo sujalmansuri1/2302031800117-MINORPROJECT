@@ -1,31 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="trdo_cart_delivery_estimates"
+    <template id="trdo_cart_stock_validation"
               inherit_id="website_sale.cart_lines"
-              name="Warehouse Delivery Estimates">
-        <xpath expr="//div[@name='o_wsale_cart_line_button_container']" position="after">
-            <t t-set="estimates" t-value="website_sale_order._get_warehouse_delivery_estimate()"/>
-            <t t-if="estimates and line.id in estimates">
-                <t t-set="line_est" t-value="estimates[line.id]"/>
-                <div class="trdo-delivery-widget mt-2">
-                    <div class="trdo-delivery-title">
-                        🚚 Estimated Delivery
+              name="Multi-Warehouse Cart Stock Validation">
+        <!-- Prominent alert banner above cart products if any line exceeds available stock -->
+        <xpath expr="//div[@id='cart_products']" position="before">
+            <t t-set="blocked_lines" t-value="website_sale_order and website_sale_order._get_insufficient_stock_lines()"/>
+            <t t-if="blocked_lines">
+                <div class="alert alert-danger d-flex align-items-center mb-3 trdo-stock-alert" role="alert">
+                    <i class="fa fa-exclamation-triangle fa-2x me-3 flex-shrink-0 text-danger"/>
+                    <div>
+                        <strong class="d-block mb-1">Stock Not Available!</strong>
+                        <span>One or more products in your cart exceed available stock across all warehouses. Please reduce the quantity before proceeding to checkout.</span>
                     </div>
-                    <t t-foreach="line_est['estimates']" t-as="wh_info">
-                        <div class="trdo-wh-row">
-                            <span t-att-class="'trdo-wh-status-dot ' + wh_info['status']"/>
-                            <div>
-                                <div class="trdo-wh-name" t-esc="wh_info['warehouse_name']"/>
-                                <div style="font-size:0.72rem;color:#888;" t-esc="wh_info['city']"/>
-                            </div>
-                            <span t-att-class="'trdo-wh-badge ' + wh_info['status']" t-esc="wh_info['status_label']"/>
-                            <div class="trdo-wh-date">
-                                📅 <t t-esc="wh_info['ship_date']"/>
-                            </div>
-                        </div>
-                    </t>
                 </div>
             </t>
+        </xpath>
+
+        <!-- Availability indicator on each cart line (In Stock vs Out of Stock / Insufficient) -->
+        <xpath expr="//div[@name='o_wsale_cart_line_button_container']" position="after">
+            <t t-set="avail" t-value="line._get_multi_warehouse_availability()"/>
+            <div t-if="avail and avail.get('label')" class="mt-2 trdo-stock-badge-container">
+                <t t-if="avail.get('is_blocked')">
+                    <div class="alert alert-danger py-1 px-2 mb-0 small d-inline-flex align-items-center gap-1">
+                        <i class="fa fa-times-circle text-danger"/>
+                        <span class="fw-bold" t-esc="avail['label']"/>
+                    </div>
+                </t>
+                <t t-else="">
+                    <span class="badge text-bg-success px-2 py-1">
+                        <i class="fa fa-check-circle me-1"/>In Stock
+                    </span>
+                </t>
+            </div>
         </xpath>
     </template>
 </odoo>

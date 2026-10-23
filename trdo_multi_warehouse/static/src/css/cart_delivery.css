@@ -1,54 +1,17 @@
-.trdo-delivery-widget {
-    margin-top: 16px;
-    border: 1px solid rgba(99,102,241,0.25);
-    border-radius: 14px;
-    padding: 18px 20px;
-    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(168,85,247,0.04));
-    backdrop-filter: blur(8px);
+/* Multi-Warehouse Cart Stock Availability & Validation */
+.trdo-stock-badge-container {
+    display: inline-block;
 }
-.trdo-delivery-title {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #3c3c3c;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+
+.trdo-stock-alert {
+    border-radius: 12px;
+    font-size: 0.95rem;
+    border-left: 5px solid #dc3545;
 }
-.trdo-delivery-line {
-    margin-bottom: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+
+/* Ensure disabled checkout button cannot be clicked */
+a[name="website_sale_main_button"].disabled {
+    pointer-events: none !important;
+    opacity: 0.55 !important;
+    cursor: not-allowed !important;
 }
-.trdo-delivery-line:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.trdo-delivery-product { font-weight: 600; font-size: 0.85rem; color: #2d2d2d; margin-bottom: 8px; }
-.trdo-wh-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    margin-bottom: 6px;
-    border: 1px solid transparent;
-    transition: 0.2s ease;
-}
-.trdo-wh-row:hover { background: rgba(99,102,241,0.05); border-color: rgba(99,102,241,0.15); }
-.trdo-wh-status-dot {
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.trdo-wh-status-dot.available   { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
-.trdo-wh-status-dot.partial     { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
-.trdo-wh-status-dot.unavailable { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
-.trdo-wh-name  { font-size: 0.82rem; font-weight: 600; color: #2d2d2d; flex: 1; }
-.trdo-wh-date  { font-size: 0.78rem; color: #555; margin-left: auto; }
-.trdo-wh-badge {
-    font-size: 0.68rem;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-}
-.trdo-wh-badge.available   { background: rgba(16,185,129,0.12); color: #059669; }
-.trdo-wh-badge.partial     { background: rgba(245,158,11,0.12); color: #d97706; }
-.trdo-wh-badge.unavailable { background: rgba(239,68,68,0.12);  color: #dc2626; }

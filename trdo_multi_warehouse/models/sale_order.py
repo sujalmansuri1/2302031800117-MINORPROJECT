@@ -1,5 +1,6 @@
-from odoo import models
+from odoo import models, _
 from odoo.tools import float_compare
+from odoo.exceptions import ValidationError
 
 
 class SaleOrder(models.Model):
@@ -13,7 +14,11 @@ class SaleOrder(models.Model):
         cart_qty = sum(
             self._get_common_product_lines(line, product).mapped('product_uom_qty')
         )
-        warehouse_ids = self.website_id.warehouse_ids if self.website_id else self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
+        warehouse_ids = (
+            self.website_id.warehouse_ids
+            if self.website_id and self.website_id.warehouse_ids
+            else self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
+        )
         if warehouse_ids:
             free_qty = sum(
                 product.with_context(warehouse_id=wh.id).free_qty
@@ -26,9 +31,67 @@ class SaleOrder(models.Model):
             ).free_qty
         return cart_qty, free_qty
 
+    def _get_insufficient_stock_lines(self):
+        self.ensure_one()
+        insufficient = self.env['sale.order.line']
+        for line in self.order_line:
+            if not line.product_id or line.product_id.type != 'consu':
+                continue
+            cart_qty, free_qty = self._get_cart_and_free_qty(line.product_id, line=line)
+            if line.product_uom_qty > free_qty or cart_qty > free_qty:
+                insufficient |= line
+        return insufficient
+
+    def _is_cart_ready(self):
+        if self._get_insufficient_stock_lines():
+            return False
+        return super()._is_cart_ready()
+
+    def _check_cart_is_ready_to_be_paid(self):
+        insufficient = self._get_insufficient_stock_lines()
+        if insufficient:
+            raise ValidationError(
+                _("Some products in your cart exceed total available stock across our warehouses. "
+                  "Please adjust the quantities before proceeding to checkout.")
+            )
+        return super()._check_cart_is_ready_to_be_paid()
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
+
+    def _get_multi_warehouse_availability(self):
+        self.ensure_one()
+        if not self.product_id or self.product_id.type != 'consu':
+            return {'available': True, 'free_qty': 0, 'is_blocked': False, 'label': ''}
+
+        cart_qty, free_qty = self.order_id._get_cart_and_free_qty(self.product_id, line=self)
+        available_qty = max(free_qty, 0.0)
+        formatted_free = int(available_qty) if available_qty.is_integer() else available_qty
+        formatted_requested = int(self.product_uom_qty) if self.product_uom_qty.is_integer() else self.product_uom_qty
+
+        if self.product_uom_qty > free_qty or cart_qty > free_qty:
+            if available_qty <= 0:
+                label = _("Out of Stock")
+            else:
+                label = _(
+                    "Only %(available)s available in stock (Requested: %(requested)s)",
+                    available=formatted_free,
+                    requested=formatted_requested,
+                )
+            return {
+                'available': False,
+                'free_qty': available_qty,
+                'is_blocked': True,
+                'label': label,
+            }
+
+        return {
+            'available': True,
+            'free_qty': available_qty,
+            'is_blocked': False,
+            'label': _("In Stock"),
+        }
 
     def _action_launch_stock_rule(self, previous_product_uom_qty=False):
         if self._context.get("skip_procurement"):
