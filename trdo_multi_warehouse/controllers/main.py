@@ -2,11 +2,7 @@ from odoo import http
 from odoo.http import request
 
 
-class WarehouseDashboardController(http.Controller):
-
-    @http.route('/trdo/warehouse/dashboard', type='json', auth='user')
-    def get_dashboard(self):
-        return request.env['trdo.warehouse.dashboard'].get_dashboard_data()
+class WarehouseCartController(http.Controller):
 
     @http.route('/trdo/warehouse/cart_delivery', type='json', auth='user')
     def get_cart_delivery(self, order_id=None):
