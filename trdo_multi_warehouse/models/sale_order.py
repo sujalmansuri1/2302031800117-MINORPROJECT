@@ -13,15 +13,16 @@ class SaleOrder(models.Model):
         cart_qty = sum(
             self._get_common_product_lines(line, product).mapped('product_uom_qty')
         )
-        warehouse_ids = self.website_id.warehouse_ids
+        warehouse_ids = self.website_id.warehouse_ids if self.website_id else self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)])
         if warehouse_ids:
             free_qty = sum(
                 product.with_context(warehouse_id=wh.id).free_qty
                 for wh in warehouse_ids
             )
         else:
+            default_wh = self.website_id.warehouse_id if self.website_id else self.warehouse_id
             free_qty = product.with_context(
-                warehouse_id=self.website_id.warehouse_id.id
+                warehouse_id=default_wh.id if default_wh else False
             ).free_qty
         return cart_qty, free_qty
 
@@ -45,7 +46,13 @@ class SaleOrderLine(models.Model):
                 continue
 
             website = line.order_id.website_id
-            warehouse_ids = website.warehouse_ids if website else False
+            if website and website.warehouse_ids:
+                warehouse_ids = website.warehouse_ids
+            else:
+                warehouse_ids = self.env['stock.warehouse'].search([
+                    ('company_id', '=', line.company_id.id)
+                ])
+
             if not warehouse_ids or len(warehouse_ids) <= 1:
                 continue
 
@@ -81,10 +88,15 @@ class SaleOrderLine(models.Model):
                 if available > 0:
                     warehouse_stocks.append((wh, available))
 
+            # Prioritize warehouse with the largest on-hand free quantity
             warehouse_stocks.sort(key=lambda x: x[1], reverse=True)
 
             if not warehouse_stocks:
                 values = line._prepare_procurement_values(group_id=group_id)
+                fallback_wh = line.order_id.warehouse_id or warehouse_ids[0]
+                values['warehouse_id'] = fallback_wh
+                if fallback_wh.delivery_route_id:
+                    values['route_ids'] = fallback_wh.delivery_route_id
                 product_qty, procurement_uom = line_uom._adjust_uom_quantities(
                     total_product_qty, quant_uom
                 )
@@ -105,6 +117,8 @@ class SaleOrderLine(models.Model):
 
                 values = line._prepare_procurement_values(group_id=group_id)
                 values['warehouse_id'] = warehouse
+                if warehouse.delivery_route_id:
+                    values['route_ids'] = warehouse.delivery_route_id
 
                 procurements += line._create_procurements(
                     product_qty, procurement_uom, origin, values
@@ -116,6 +130,10 @@ class SaleOrderLine(models.Model):
                     qty_remaining, quant_uom
                 )
                 values = line._prepare_procurement_values(group_id=group_id)
+                fallback_wh = line.order_id.warehouse_id or warehouse_ids[0]
+                values['warehouse_id'] = fallback_wh
+                if fallback_wh.delivery_route_id:
+                    values['route_ids'] = fallback_wh.delivery_route_id
                 procurements += line._create_procurements(
                     product_qty, procurement_uom, origin, values
                 )
